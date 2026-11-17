@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Project Inquiry</title>
+    <style>
+        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f8fafc; --card-bg: #ffffff; --text: #1e293b; --border: #cbd5e1; }
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .form-container { background: var(--card-bg); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); width: 100%; max-width: 500px; }
+        h2 { margin-top: 0; font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+        p.subtitle { color: #64748b; font-size: 14px; margin-bottom: 24px; margin-top: 0; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #334155; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 14px; transition: border-color 0.2s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        button { background-color: var(--primary); color: white; border: none; padding: 14px; border-radius: 6px; width: 100%; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        .status-message { display: none; margin-top: 20px; padding: 12px; border-radius: 6px; font-size: 14px; text-align: center; font-weight: 500; }
+        .success { background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; display: block; }
+        .error { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Let's Build Together</h2>
+    <p class="subtitle">Submit your project details and our team will review them instantly.</p>
+    
+    <form id="leadForm">
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" required placeholder="Jane Doe">
+        </div>
+        <div class="form-group">
+            <label for="email">Work Email</label>
+            <input type="email" id="email" required placeholder="jane@company.com">
+        </div>
+        <div class="form-group">
+            <label for="budget">Estimated Budget</label>
+            <select id="budget">
+                <option value="$1k-$3k">$1,000 - $3,000</option>
+                <option value="$3k-$5k">$3,000 - $5,000</option>
+                <option value="$5k+">$5,000+</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="details">Project Scope</label>
+            <textarea id="details" rows="4" required placeholder="Describe your goals..."></textarea>
+        </div>
+        <button type="submit" id="submitBtn">Submit Inquiry</button>
+        <div id="statusMsg" class="status-message"></div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('leadForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); 
+        
+        const btn = document.getElementById('submitBtn');
+        const status = document.getElementById('statusMsg');
+        btn.innerText = 'Transmitting Data...';
+        btn.disabled = true;
+        status.style.display = 'none';
+
+        const payload = {
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            budget: document.getElementById('budget').value,
+            details: document.getElementById('details').value.trim(),
+        };
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/webhook', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                status.innerText = 'Success! Your inquiry has been logged securely.';
+                status.className = 'status-message success';
+                document.getElementById('leadForm').reset();
+            } else {
+                throw new Error(result.message || 'Server processing failed.');
+            }
+        } catch (error) {
+            status.innerText = error.message || 'Connection error. Ensure the server is active.';
+            status.className = 'status-message error';
+        } finally {
+            btn.innerText = 'Submit Inquiry';
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
